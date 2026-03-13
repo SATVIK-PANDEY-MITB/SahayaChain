@@ -1,0 +1,30 @@
+{
+  "name": "frontend.html",
+  "version": "1.0.0",
+  "description": "A community-based finance platform that enables P2P lending within verified communities, built with the MERN stack (MongoDB, Express, React, Node.js).",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anchit-goel/SahayaChain.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/anchit-goel/SahayaChain/issues"
+  },
+  "homepage": "https://github.com/anchit-goel/SahayaChain#readme",
+  "dependencies": {
+    "@vitejs/plugin-react": "^5.1.2",
+    "axios": "^1.13.2",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "react-router-dom": "^7.10.1",
+    "vite": "^7.2.7"
+  }
+}
