@@ -1,151 +1,195 @@
-# Community Finance Platform
+# SahayaChain
 
-A community-based finance platform that enables P2P lending within verified communities, built with the MERN stack (MongoDB, Express, React, Node.js).
+SahayaChain is a community-finance prototype for organizing community membership and peer-to-peer loan workflows. It contains a React single-page application and an Express/MongoDB API with user, community, loan, and chatbot route modules.
 
-## Features
+> **Project status:** The API and data models demonstrate core workflows, but the browser UI is not yet integrated end-to-end with those APIs. Several screens use hard-coded demonstration data. This repository should be treated as a development prototype, not a production lending, identity-verification, or payment service.
 
-- **User Authentication**: Secure registration and login with JWT, email, and phone (OTP) verification.
-- **Community Management**: Create, join, and manage community-based lending groups.
-- **Loan System**: Request, approve, fund, and track loans within communities.
-- **Financial Assistant**: AI-powered chatbot to provide financial guidance and assistance.
-- **Real-time Communication**: Community chat and notifications using Socket.io.
-- **User Verification**: KYC verification system using Aadhar and PAN card.
-- **Dashboard & Analytics**: Track loans, payments, and community metrics.
+## Project At A Glance
 
-## Tech Stack
+| Measure | Current repository |
+| --- | --- |
+| Frontend routes | 6 |
+| Backend route modules | 5 |
+| Declared Express route handlers | 41 |
+| Mongoose domain models | 3 |
+| Development frontend port | 3000 |
+| Development API port | 5000 |
+| Automated test suites | 0 configured |
 
-### Backend
-- **Node.js & Express**: Server framework
-- **MongoDB & Mongoose**: Database and ODM
-- **Socket.io**: Real-time communication
-- **JWT**: Authentication and authorization
-- **bcryptjs**: Password hashing
+Route-handler count is based on the route declarations in `backend/routes/`; some routers are mounted more than once for nested resources.
 
-### Frontend
-- **React.js**: UI framework
-- **Redux Toolkit**: State management
-- **Material-UI**: Component library
-- **React Router**: Navigation
-- **Axios**: API requests
-- **Socket.io-client**: Real-time communication
+## Implemented Scope
 
-## Installation & Setup
+### Backend capabilities
+
+- JWT bearer-token registration and login, role checks, profile updates, and password hashing with bcrypt.
+- OTP and password-reset endpoints. These currently provide development/demo behavior; they are not connected to an SMS or email provider.
+- Community discovery, search, pagination, membership requests, role fields, announcements, and geospatial indexes in the MongoDB schema.
+- Loan request, approval/rejection, payment, and status workflow handlers, with loan and payment schedule fields in the schema.
+- A rule-based financial FAQ endpoint with suggestions personalized from the signed-in user's stored profile.
+- Socket.IO community rooms and message broadcasting.
+
+### Frontend screens
+
+The React app declares `/`, `/login`, `/dashboard`, `/communities`, `/about`, and `/contact`. Login currently uses a mock Quick Dev Login; phone OTP is simulated. The community cards, dashboard metrics, and recent activity are static sample content rather than API responses.
+
+## Technology
+
+| Layer | Technologies |
+| --- | --- |
+| Client | React 19, Vite 7, React Router 7, Axios |
+| API | Node.js, Express 4, Mongoose 6, MongoDB |
+| Authentication | JSON Web Tokens (`jsonwebtoken`), `bcryptjs` |
+| Realtime | Socket.IO 4 on the Node HTTP server |
+| Middleware | CORS, Morgan, dotenv |
+
+The repository does not currently use Redux Toolkit, Material UI, `socket.io-client`, or a hosted AI model. The chatbot implementation is rule-based.
+
+## Architecture
+
+```text
+React SPA (Vite :3000)
+       | /api proxy during development
+       v
+Express API + Socket.IO (:5000)
+       |
+       v
+MongoDB via Mongoose
+```
+
+The Vite development server proxies `/api` requests to `http://localhost:5000`. The API is also configured to serve static files from the repository parent directory. Socket.IO is initialized by the backend HTTP server.
+
+### Data model
+
+- **User:** borrower/lender/admin role, unique email and 10-digit phone, password hash, verification status, community and loan references, and a credit score bounded from 300 to 900.
+- **Community:** members and roles, join requests, announcements, loan references, settings, metrics, and a GeoJSON `2dsphere` location index.
+- **Loan:** borrower, optional lender, community, principal, interest, term, status, repayment schedule, payment records, and optional collateral/guarantor details.
+
+Loan schema constraints include a minimum principal of **₹1,000**, a maximum interest rate of **30%**, and a term of **1–60 months**. The default interest rate is **10%** and default term is **12 months**. The schedule helper calculates equal monthly installments using the standard amortization formula; it does not represent an external payment transaction.
+
+## Getting Started
 
 ### Prerequisites
-- Node.js (v14 or later)
-- MongoDB
-- npm or yarn
 
-### Backend Setup
-1. Clone the repository
-   ```
-   git clone https://github.com/yourusername/community-finance.git
-   cd community-finance
-   ```
+- Node.js 20 or later and npm
+- MongoDB running locally or a MongoDB connection URI
 
-2. Install dependencies
-   ```
-   cd backend
-   npm install
-   ```
+### 1. Install frontend dependencies
 
-3. Create config file
-   Create a `config.env` file in the `backend/config` directory with the following variables:
-   ```
-   NODE_ENV=development
-   PORT=5000
-   MONGO_URI=mongodb://localhost:27017/community_finance
-   JWT_SECRET=your_jwt_secret_key_here
-   JWT_EXPIRE=30d
-   GEOCODER_PROVIDER=mapquest
-   GEOCODER_API_KEY=your_mapquest_api_key_here
-   FILE_UPLOAD_PATH=./public/uploads
-   MAX_FILE_UPLOAD=1000000
-   ```
+From the repository root:
 
-4. Start the server
-   ```
-   npm run dev
-   ```
+```bash
+npm install
+```
 
-### Frontend Setup
-1. Install dependencies
-   ```
-   cd frontend
-   npm install
-   ```
+### 2. Configure the backend
 
-2. Start the client
-   ```
-   npm start
-   ```
+Create `backend/config/config.env`:
 
-## API Documentation
+```dotenv
+NODE_ENV=development
+PORT=5000
+MONGO_URI=mongodb://127.0.0.1:27017/sahayachain
+JWT_SECRET=replace-with-a-long-random-secret
+JWT_EXPIRE=30d
+```
 
-### Authentication Routes
-- `POST /api/auth/register` - Register a new user
-- `POST /api/auth/login` - Login user
-- `POST /api/auth/send-otp` - Send OTP for phone verification
-- `POST /api/auth/verify-otp` - Verify OTP and login/register
-- `GET /api/auth/logout` - Logout user
-- `GET /api/auth/me` - Get current user profile
-- `PUT /api/auth/updatedetails` - Update user details
-- `PUT /api/auth/updatepassword` - Update password
-- `POST /api/auth/forgotpassword` - Send password reset email
-- `PUT /api/auth/resetpassword/:resettoken` - Reset password
+`MONGO_URI` and `JWT_SECRET` are required for normal API operation. `PORT` defaults to `5000`; `JWT_EXPIRE` defaults to `30d`. The server loads this file at startup from `backend/config/config.env` when started with `backend` as the working directory.
 
-### User Routes
-- `GET /api/users` - Get all users (admin only)
-- `GET /api/users/:id` - Get single user (admin only)
-- `POST /api/users` - Create user (admin only)
-- `PUT /api/users/:id` - Update user (admin only)
-- `DELETE /api/users/:id` - Delete user (admin only)
-- `GET /api/users/profile` - Get current user profile
-- `PUT /api/users/profile` - Update current user profile
-- `POST /api/users/verify` - Upload verification documents
-- `PUT /api/users/:id/verify` - Process user verification (admin only)
+Install backend dependencies:
 
-### Community Routes
-- `GET /api/communities` - Get all communities
-- `GET /api/communities/nearby` - Get nearby communities
-- `GET /api/communities/:id` - Get single community
-- `POST /api/communities` - Create new community
-- `PUT /api/communities/:id` - Update community
-- `DELETE /api/communities/:id` - Delete community
-- `POST /api/communities/:id/join` - Request to join community
-- `PUT /api/communities/:id/requests/:requestId` - Process join request
-- `DELETE /api/communities/:id/leave` - Leave community
-- `PUT /api/communities/:id/members/:userId` - Update member role
-- `DELETE /api/communities/:id/members/:userId` - Remove member
-- `POST /api/communities/:id/announcements` - Create announcement
-- `GET /api/communities/:communityId/members` - Get community members
-- `GET /api/communities/:communityId/loans` - Get community loans
-- `POST /api/communities/:communityId/loans` - Create loan request
+```bash
+cd backend
+npm install
+```
 
-### Loan Routes
-- `GET /api/loans` - Get all loans
-- `GET /api/loans/:id` - Get single loan
-- `PUT /api/loans/:id` - Update loan
-- `PUT /api/loans/:id/process` - Process loan (approve, reject, fund, etc.)
-- `POST /api/loans/:id/payments` - Record loan payment
-- `GET /api/users/:userId/loans` - Get user's loans
+### 3. Start the API
 
-### Chatbot Routes
-- `POST /api/chatbot/message` - Process chatbot message
-- `GET /api/chatbot/suggestions` - Get suggested questions
+In the `backend` directory:
 
-## Socket.io Events
+```bash
+npm run dev
+```
 
-### Community Chat
-- `joinCommunity` - Join a community chat room
-- `leaveCommunity` - Leave a community chat room
-- `sendMessage` - Send a chat message
-- `message` - Receive a chat message
+The API listens at `http://localhost:5000`. If MongoDB is unavailable, the server logs a warning and still starts, but database-backed endpoints will not work.
 
-### Chatbot
-- `chatbotMessage` - Send a message to the chatbot
-- `chatbotResponse` - Receive a response from the chatbot
+### 4. Start the frontend
+
+Open another terminal at the repository root:
+
+```bash
+npm run dev
+```
+
+Vite opens the app at `http://localhost:3000` and proxies `/api` calls to the backend.
+
+### Production build
+
+From the repository root:
+
+```bash
+npm run build
+npm run preview
+```
+
+The backend's production static-file configuration points to `backend/client/build`, while Vite emits its build to the root `dist/` directory by default. Configure static hosting or align these paths before using that backend production fallback.
+
+## API Overview
+
+All API routes are prefixed with `/api`. Protected routes expect:
+
+```http
+Authorization: Bearer <jwt>
+```
+
+The route modules declare **41 handlers** across five areas. The following are the primary route groups and workflows:
+
+| Prefix | Example operations | Access |
+| --- | --- | --- |
+| `/api/auth` | `POST /register`, `POST /login`, `POST /send-otp`, `POST /verify-otp`, `GET /me`, `PUT /updatedetails`, `PUT /updatepassword` | Registration/login public; account operations authenticated |
+| `/api/users` | `GET /profile`, `PUT /profile`, `POST /verify`; admin user CRUD under `/` and `/:id` | Authenticated; user administration is role-restricted |
+| `/api/communities` | `GET /`, `GET /nearby`, `GET /:id`, `POST /`, `POST /:id/join`, `DELETE /:id/leave`, `PUT /:id/requests/:requestId` | Discovery public; changes require authentication and applicable roles |
+| `/api/loans` | `GET /`, `GET /:id`, `PUT /:id`, `PUT /:id/process`, `POST /:id/payments` | Authenticated; resource and community-role checks apply |
+| `/api/chatbot` | `POST /message`, `GET /suggestions` | Authenticated |
+
+Nested resources are also mounted for community members/loans and user loans. See `backend/server.js` and the files under `backend/routes/` for exact mount paths and route behavior.
+
+## Realtime Events
+
+Socket.IO is served from the backend origin. The server handles `joinCommunity`, `leaveCommunity`, and `sendMessage`; it broadcasts messages as `message` to the `community-<communityId>` room. It also handles `chatbotMessage` and replies with `chatbotResponse`.
+
+**Current limitations:** community chat messages are broadcast in memory and are not persisted; socket connections do not currently authenticate or authorize community membership. Do not use this transport for sensitive production communication without adding those controls.
+
+## Development Notes And Limitations
+
+- The OTP handler returns the OTP in development and does not send an SMS. Password reset returns a reset URL rather than sending email.
+- The chatbot uses keyword/rule matching and has no LLM or external AI integration.
+- `contractHash` and `contractAddress` are model fields only. There is no blockchain client, smart contract, or on-chain transaction flow in this repository.
+- Verification/document fields exist in the API and schema, but there is no connected KYC provider in this project.
+- Dashboard values, community examples, and recent activity in the frontend are static. The login page's Quick Dev Login stores a mock token locally and is not API authentication.
+- There is no configured automated test suite. The backend `test` script is a placeholder that exits with an error.
+- Configure a real production CORS origin, secure secrets, database access controls, rate limiting, request validation, and authenticated socket handling before deployment.
+
+## Repository Layout
+
+```text
+.
+├── backend/
+│   ├── config/          # CORS and runtime configuration
+│   ├── controllers/     # Request handlers and domain workflows
+│   ├── middleware/     # Authentication, roles, and errors
+│   ├── models/          # User, community, and loan schemas
+│   ├── routes/          # Five Express route modules
+│   └── server.js         # Express, Socket.IO, MongoDB startup
+├── src/
+│   ├── components/      # Shared layout components
+│   ├── context/         # Client authentication/demo state
+│   └── pages/           # Six routed screens
+├── index.html
+├── package.json         # Vite frontend scripts and dependencies
+└── vite.config.js       # Development server and API proxy
+```
 
 ## License
 
-MIT License 
+The root frontend package declares the ISC license, while the backend package declares MIT. Confirm the intended project-wide license before redistributing the combined repository.
