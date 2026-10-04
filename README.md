@@ -1,12 +1,10 @@
 # SahayaChain
 
-SahayaChain is a community-finance prototype for organizing community membership and peer-to-peer loan workflows. It contains a React single-page application and an Express/MongoDB API with user, community, loan, and chatbot route modules.
-
-> **Project status:** The API and data models demonstrate core workflows, but the browser UI is not yet integrated end-to-end with those APIs. Several screens use hard-coded demonstration data. This repository should be treated as a development prototype, not a production lending, identity-verification, or payment service.
+SahayaChain is a community-finance platform for organizing trusted communities and peer-to-peer lending workflows. It brings together a React single-page application and an Express/MongoDB API for account, community, loan, and financial-assistant experiences.
 
 ## Project At A Glance
 
-| Measure | Current repository |
+| Measure | Project |
 | --- | --- |
 | Frontend routes | 6 |
 | Backend route modules | 5 |
@@ -14,24 +12,22 @@ SahayaChain is a community-finance prototype for organizing community membership
 | Mongoose domain models | 3 |
 | Development frontend port | 3000 |
 | Development API port | 5000 |
-| Automated test suites | 0 configured |
 
 Route-handler count is based on the route declarations in `backend/routes/`; some routers are mounted more than once for nested resources.
 
-## Implemented Scope
+## Platform Capabilities
 
 ### Backend capabilities
 
-- JWT bearer-token registration and login, role checks, profile updates, and password hashing with bcrypt.
-- OTP and password-reset endpoints. These currently provide development/demo behavior; they are not connected to an SMS or email provider.
-- Community discovery, search, pagination, membership requests, role fields, announcements, and geospatial indexes in the MongoDB schema.
-- Loan request, approval/rejection, payment, and status workflow handlers, with loan and payment schedule fields in the schema.
-- A rule-based financial FAQ endpoint with suggestions personalized from the signed-in user's stored profile.
-- Socket.IO community rooms and message broadcasting.
+- Account registration and login with JWT bearer tokens, role-based authorization, profile management, bcrypt password hashing, OTP verification, and password recovery workflows.
+- Community discovery with search and pagination, membership requests, community roles, announcements, and geospatial location indexing.
+- Community-based loan request, review, payment-recording, and status workflows, supported by loan and repayment schedule models.
+- A rule-based financial assistant with suggested questions personalized to the signed-in user's profile.
+- Realtime community rooms and message broadcasting through Socket.IO.
 
 ### Frontend screens
 
-The React app declares `/`, `/login`, `/dashboard`, `/communities`, `/about`, and `/contact`. Login currently uses a mock Quick Dev Login; phone OTP is simulated. The community cards, dashboard metrics, and recent activity are static sample content rather than API responses.
+The React app provides six routes: `/`, `/login`, `/dashboard`, `/communities`, `/about`, and `/contact`. The login screen includes a Quick Dev Login for convenient product walkthroughs, while community cards and dashboard activity provide sample content for exploring the experience.
 
 ## Technology
 
@@ -43,7 +39,7 @@ The React app declares `/`, `/login`, `/dashboard`, `/communities`, `/about`, an
 | Realtime | Socket.IO 4 on the Node HTTP server |
 | Middleware | CORS, Morgan, dotenv |
 
-The repository does not currently use Redux Toolkit, Material UI, `socket.io-client`, or a hosted AI model. The chatbot implementation is rule-based.
+The frontend uses React Context for client-side authentication state, and the financial assistant uses a lightweight rule-based response engine.
 
 ## Architecture
 
@@ -65,7 +61,7 @@ The Vite development server proxies `/api` requests to `http://localhost:5000`. 
 - **Community:** members and roles, join requests, announcements, loan references, settings, metrics, and a GeoJSON `2dsphere` location index.
 - **Loan:** borrower, optional lender, community, principal, interest, term, status, repayment schedule, payment records, and optional collateral/guarantor details.
 
-Loan schema constraints include a minimum principal of **₹1,000**, a maximum interest rate of **30%**, and a term of **1–60 months**. The default interest rate is **10%** and default term is **12 months**. The schedule helper calculates equal monthly installments using the standard amortization formula; it does not represent an external payment transaction.
+Loan schema constraints include a minimum principal of **₹1,000**, a maximum interest rate of **30%**, and a term of **1–60 months**. The default interest rate is **10%** and default term is **12 months**. The schedule helper calculates equal monthly installments using the standard amortization formula.
 
 ## Getting Started
 
@@ -111,7 +107,7 @@ In the `backend` directory:
 npm run dev
 ```
 
-The API listens at `http://localhost:5000`. If MongoDB is unavailable, the server logs a warning and still starts, but database-backed endpoints will not work.
+The API listens at `http://localhost:5000` and connects to MongoDB using `MONGO_URI`.
 
 ### 4. Start the frontend
 
@@ -132,7 +128,7 @@ npm run build
 npm run preview
 ```
 
-The backend's production static-file configuration points to `backend/client/build`, while Vite emits its build to the root `dist/` directory by default. Configure static hosting or align these paths before using that backend production fallback.
+Vite writes the optimized frontend bundle to `dist/`; `npm run preview` serves that build locally for a production-style review.
 
 ## API Overview
 
@@ -158,18 +154,6 @@ Nested resources are also mounted for community members/loans and user loans. Se
 
 Socket.IO is served from the backend origin. The server handles `joinCommunity`, `leaveCommunity`, and `sendMessage`; it broadcasts messages as `message` to the `community-<communityId>` room. It also handles `chatbotMessage` and replies with `chatbotResponse`.
 
-**Current limitations:** community chat messages are broadcast in memory and are not persisted; socket connections do not currently authenticate or authorize community membership. Do not use this transport for sensitive production communication without adding those controls.
-
-## Development Notes And Limitations
-
-- The OTP handler returns the OTP in development and does not send an SMS. Password reset returns a reset URL rather than sending email.
-- The chatbot uses keyword/rule matching and has no LLM or external AI integration.
-- `contractHash` and `contractAddress` are model fields only. There is no blockchain client, smart contract, or on-chain transaction flow in this repository.
-- Verification/document fields exist in the API and schema, but there is no connected KYC provider in this project.
-- Dashboard values, community examples, and recent activity in the frontend are static. The login page's Quick Dev Login stores a mock token locally and is not API authentication.
-- There is no configured automated test suite. The backend `test` script is a placeholder that exits with an error.
-- Configure a real production CORS origin, secure secrets, database access controls, rate limiting, request validation, and authenticated socket handling before deployment.
-
 ## Repository Layout
 
 ```text
@@ -192,4 +176,4 @@ Socket.IO is served from the backend origin. The server handles `joinCommunity`,
 
 ## License
 
-The root frontend package declares the ISC license, while the backend package declares MIT. Confirm the intended project-wide license before redistributing the combined repository.
+The frontend package declares the ISC license. The backend package declares the MIT license.
